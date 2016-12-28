@@ -19,7 +19,14 @@
 
  ****************************************************************************************************/
 
-#include "RepRapFirmware.h"
+#include "Platform.h"
+
+#include "Heating/Heat.h"
+#include "Movement/DDA.h"
+#include "Movement/Move.h"
+#include "Network.h"
+#include "RepRap.h"
+#include "Webserver.h"
 
 #include "sam/drivers/tc/tc.h"
 #include "sam/drivers/hsmci/hsmci.h"
@@ -29,6 +36,9 @@
 # include "TMC2660.h"
 # include "FirmwareUpdater.h"
 #endif
+
+#include <climits>
+#include <malloc.h>
 
 extern char _end;
 extern "C" char *sbrk(int i);
@@ -208,15 +218,15 @@ void Platform::Init()
 	SERIAL_AUX2_DEVICE.begin(baudRates[2]);
 #endif
 
-	compatibility = marlin;				// default to Marlin because the common host programs expect the "OK" response to commands
-	ARRAY_INIT(ipAddress, IP_ADDRESS);
-	ARRAY_INIT(netMask, NET_MASK);
-	ARRAY_INIT(gateWay, GATE_WAY);
+	compatibility = marlin;						// default to Marlin because the common host programs expect the "OK" response to commands
+	ARRAY_INIT(ipAddress, DefaultIpAddress);
+	ARRAY_INIT(netMask, DefaultNetMask);
+	ARRAY_INIT(gateWay, DefaultGateway);
 
 #if defined(DUET_NG) && defined(DUET_WIFI)
 	memset(macAddress, 0xFF, sizeof(macAddress));
 #else
-	ARRAY_INIT(macAddress, MAC_ADDRESS);
+	ARRAY_INIT(macAddress, DefaultMacAddress);
 #endif
 
 	zProbeType = 0;	// Default is to use no Z probe switch
@@ -435,7 +445,7 @@ void Platform::Init()
 	}
 #endif
 
-	// MCU temperature and power monitoring
+	// MCU temperature monitoring - doesn't work in RADDS due to pin assignmentgs and SAM3X chip bug
 #ifndef __RADDS__
 	temperatureAdcChannel = GetTemperatureAdcChannel();
 	AnalogInEnableChannel(temperatureAdcChannel, true);
@@ -446,6 +456,7 @@ void Platform::Init()
 	mcuTemperatureAdjust = 0.0;
 
 #ifdef DUET_NG
+	// Power monitoring
 	vInMonitorAdcChannel = PinToAdcChannel(PowerMonitorVinDetectPin);
 	pinMode(PowerMonitorVinDetectPin, AIN);
 	AnalogInEnableChannel(vInMonitorAdcChannel, true);

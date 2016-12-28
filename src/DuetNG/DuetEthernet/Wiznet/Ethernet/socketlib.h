@@ -226,6 +226,8 @@ int8_t  connect(uint8_t sn, uint8_t * addr, uint16_t port);
  */
 int8_t  disconnect(uint8_t sn);
 
+void disconnectNoWait(uint8_t sn);
+
 /**
  * @ingroup WIZnet_socket_APIs
  * @brief	Send data to the connected peer in TCP socket.
@@ -294,7 +296,7 @@ int32_t recv(uint8_t sn, uint8_t * buf, uint16_t len);
  *                        @ref SOCKERR_TIMEOUT     - Timeout occurred \n
  *                        @ref SOCK_BUSY           - Socket is busy. 
  */
-int32_t sendto(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t port);
+int32_t sendto(uint8_t sn, const uint8_t * buf, uint16_t len, const uint8_t * addr, uint16_t port);
 
 /**
  * @ingroup WIZnet_socket_APIs

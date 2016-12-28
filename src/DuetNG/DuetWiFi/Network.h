@@ -9,11 +9,7 @@ Separated out from Platform.h by dc42 and extended by zpl
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include <cctype>
-#include <cstring>
-#include <cstdlib>
-#include <climits>
-
+#include "RepRapFirmware.h"
 #include "MessageType.h"
 
 // Return code definitions
@@ -21,10 +17,10 @@ const uint32_t rcNumber = 0x0000FFFF;
 const uint32_t rcJson = 0x00010000;
 const uint32_t rcKeepOpen = 0x00020000;
 
-static const uint8_t IP_ADDRESS[4] = { 192, 168, 1, 10 };				// Need some sort of default...
-static const uint8_t NET_MASK[4] = { 255, 255, 255, 0 };
-static const uint8_t GATE_WAY[4] = { 192, 168, 1, 1 };
-static const uint16_t DEFAULT_HTTP_PORT = 80;
+static const uint8_t DefaultIpAddress[4] = { 192, 168, 1, 10 };				// Need some sort of default...
+static const uint8_t DefaultNetMask[4] = { 255, 255, 255, 0 };
+static const uint8_t DefaultGateway[4] = { 192, 168, 1, 1 };
+static const uint16_t DefaultHttpPort = 80;
 
 class TransactionBuffer;
 class WifiFirmwareUploader;

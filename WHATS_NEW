@@ -2,77 +2,95 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 1.17 (in development)
+Version 1.17
+============
 
-RC3 build:
+Implemented grid bed compensation:
+- M557 defines the grid
+- G29 probes the grid, and saves the height map to file and activates it
+- G29 S1 loads and activates a height map
+- G29 S2 clears the height map (so does M561)
+- M374 also saves the height map, and M375 loads a height map
+- M376 sets the compensation taper height
+- Long moves are segmented when grid compensation is in use so as to follow the contours of the bed
+- Duet Web Control 1.14 can display the height map graphically
 
-- Bed compensation taper now applies to G32 3/4/5-point compensation as well as to G29
+Changes to information extraction from gcode files:
 - Recognise generated-with comment written by newer versions of Cura
 - Recognise filament usage info in kisslicer-generated gcode files
-- Firmware retraction with Z hop now works when using 'retract on layer change' in slic3r
-- A 2nd controlled fan using an external mosfet driven by expansion connector pin 25 on a Duet 0.6 is no longer inverted
-- The Duet 0.8.5 web server looks for gzipped versions of requested files first, then regular versions
-- Added support for M374 (save height map) and M375 (load height map)
-- Added M376 (set bed compensation taper height)
-- Added T parameter to G31 command
-- M500, M501 and M502 now use config_override.g instead of flash memory. The parameters saved and restored are:
--- M307 auto tune results
--- PID parameters, if you used M301 to override the auto tune PID settings
--- Delta printer M665 and M666 settings
--- G31 trigger height, trigger value and X and Y offsets
+
+ M500, M501 and M502 now use config_override.g instead of flash memory. The parameters saved and restored are:
+- M307 auto tune results
+- PID parameters, if you used M301 to override the auto tune PID settings
+- Delta printer M665 and M666 settings
+- G31 trigger height, trigger value and X and Y offsets
 - The M501 auto save option has been removed
-- Removed S and T parameters from M301 command. Use M307 command instead.
-- M301 with negative P parameter no longer sets bang-bang mode. Use M307 instead.
-- Added P parameter to the G31 command to specify Z probe type. This allows you to view the parameters for the Z probe(s) and to set parameters for a particular Z probe type without selecting that type. G31 P or G31 P0 prints the parameters of the currently-selected Z probe.
+
+ Duet 0.8.5/0.6 web server changes:
+- Support gzipped files, and look for gzipped versions of files before looking for regular ones
+
+ Changes to Z probe configuration and usage
 - Z probe offsets are now applied during G30 probing with specified XY coordinates, including during delta auto calibration
-- Z probe recovery time is now applied from the end of the travel move just before probing
-- Fixed bad dive height when using G29 with a large trigger height
-- Fixed bad JSON message during printing when there were no active extruders
-- Added exception handlers and store a software reset code when an exception occurs
-- Fixed reset reason text because on the Duet WiFi a watchdog reset can look like an external reset
-- Software reset code storage/retrieval now works on Duet WiFi
-- Added F parameter to M571 command to set PWM frequency
-- Removed M201 max average printing acceleration parameter
-- Setting the temperature of a tool heater no longer sets the heater temperature unless the tool is currently selected or no tool is selected
-- Implemented G29 S1 (load bed height map from file)
-- Long moves are now segmented when grid compensation is in use so as to follow the contours of the bed
-- Default max temperature excursion increased to 15C
-- M571 now accepts a P parameter to select the output pin (edit: M571 isn't working correctly in this release)
-- Removed Duet WiFi prototype 1 build configuration and added RADDS build configuration
-- M104 and M109 default to tool 0 if no tool selected and no T parameter provided
-- M109 now selects the tool after setting the active temperature if it was not already selected
-- M558 now uses the R parameter to set the Z probe recovery time
-- G29 grid bed compensation is fully implemented except for G29 S1 (load height map from file)
-- Fix for adjusting the mix ratio during printing when using absolute extruder coordinates with mixing extruders, except for pause/resume
-- Workaround for DWC 1.13 including a volume ID in the new file path when renaming files across directories
-- Tool offset is no longer applied to G1 moves with S1 or S2 modifiers
-- M557 can now be used to define a probing grid
-- G29 can now be used to do bed probing, however the results are not used yet
-- M109 and M190 commands now support both R and S parameters in the same way as Marlin. If you specify temperature using the S parameter, the firmware will wait for the heater to heat up but not to cool down. If you specify temperature using the R parameter, the firmware will wait both when heating up and when cooling down.
-- M191 (set chamber temperature and wait) is now supported, with both R and S parameters as for M190. However you may wish instead to use M141 followed by M116 later to wait for all temperatures.
-- You can now specify a Stenhart-Hart C coefficient in the M305 command, for better thermistor accuracy over a wide temperature range. If you do use a non-zero C coefficient then you will need to change the B (beta) parameter as well. The B parameter should be the reciprocal of the Steinhart-Hart B coefficient.
+- Z probe recovery time can be defined (R parameter in M558) and adds a delay between the travel move and the probing move
+- Added T parameter to the G31 command to specify Z probe type. This allows you to view the parameters for the Z probe(s) and to set parameters for a particular Z probe type without selecting that type. G31 P or G31 P0 prints the parameters of the currently-selected Z probe.
+
+ Changes to heater management:
+- You can now specify a Steinhart-Hart C coefficient in the M305 command, for better thermistor accuracy over a wide temperature range. If you do use a non-zero C coefficient then you will need to change the B (beta) parameter as well. The B parameter should be the reciprocal of the Steinhart-Hart B coefficient.
 - The thermistor disconnected detection now takes account of the thermistor parameters configured with M305. This should allow the Dyze thermistor to be used without getting so many 'thermistor disconnected' reports. You may need to use a small negative H parameter in your M305 command to make it reliable.
 - M143 now takes an H parameter to specify the heater whose temperature limit you are setting. If it is not provided then heater 1 is assumed.
-- Multiple commands from different sources that do not interfere are executed concurrently. Previously, only a few status reporting commands could be executed concurrently with other commands. 
-- Thermistor parameters are no longer saved to flash memory by M500.
-- If the M569 command is used with the 'R' parameter to set the enable polarity then the corresponding driver is disabled after the polarity is set.
-- Experimental code has been added to log Z probe transitoins during amove, for use when calibrating nozzle offsets.
+- M109 and M190 commands now support both R and S parameters in the same way as Marlin. If you specify temperature using the S parameter, the firmware will wait for the heater to heat up but not to cool down. If you specify temperature using the R parameter, the firmware will wait both when heating up and when cooling down.
+- M104 and M109 default to tool 0 if no tool is selected and no T parameter provided
+- M109 now selects the tool after setting the active temperature if it was not already selected
+- M191 (set chamber temperature and wait) is now supported, with both R and S parameters as for M190. However you may wish instead to use M141 followed by M116 later to wait for all temperatures.
+- Removed S and T parameters from M301 command. Use the M307 command instead.
+- M301 with negative P parameter no longer sets bang-bang mode. Use M307 instead.
+- Increased the default max temperature excursion to 15C
+- Setting the temperature of a tool heater no longer sets the heater temperature unless the tool is currently selected or no tool is selected
+
+Changes to M571 command:
+- M571 now accepts a P parameter to select the output pin
+- Added F parameter to M571 command to set PWM frequency
+
+Bug fixes:
+- Firmware retraction with Z hop now works when using 'retract on layer change' in slic3r
+- Fixed bad JSON message during printing when there were no active extruders
+- Software reset code storage/retrieval now works on Duet WiFi
+- Fixed reset reason text because on the Duet WiFi a watchdog reset can look like an external reset
+- Fix for adjusting the mix ratio during printing when using absolute extruder coordinates with mixing extruders, except for pause/resume
+- Workaround for DWC 1.13 including a volume ID in the new file path when renaming files across directories
 - Bug fix: M300 now causes a beep on PanelDue again (was broken in 1.16).
 - Bug fix: when a move was aborted, the head position was incorrectly calculated if the move has a direction reversal scheduled later on. In practice this situation did not arise.
 
-Upgrade notes - VERY IMPORTANT TO AVOID DAMAGE!!!
+Miscellaneous changes:
+- Multiple commands from different sources that do not interfere are executed concurrently. Previously, only a few status reporting commands could be executed concurrently with other commands. 
+- If the M569 command is used with the 'R' parameter to set the enable polarity then the corresponding driver is disabled after the polarity is set.
+- Experimental code has been added to log Z probe transitions during a move, for use when calibrating nozzle offsets.
+- Removed the undocumented M201 max average printing acceleration parameter
+- Added exception handlers and store a software reset code when an exception occurs
+- Removed Duet WiFi prototype 1 build configuration and added RADDS build configuration
+- Tool offset is no longer applied to G1 moves with S1 or S2 modifiers
+- A 2nd controlled fan using an external mosfet driven by expansion connector pin 25 on a Duet 0.6 is no longer inverted
 
-- On the Duet 0.6 and 0.85 the default direction for the X motor is now forwards (as it is for all other motors and on the Duet WiFi). If you do not have a M569 P0 command in your config.g file then you will need to add M569 P0 S0 in order to keep the previous behaviour.
+Upgrade notes for 1.17 - VERY IMPORTANT TO AVOID DAMAGE!!!
+
+- On the Duet 0.6 and 0.85 the default direction for the X motor is now forward (as it is for all other motors and on the Duet WiFi). If you do not have a M569 P0 command in your config.g file then you will need to add M569 P0 S0 in order to keep the previous behaviour.
 - On the Duet 0.6 and 0.85 the default bed thermistor resistance at 25C is now 100K (as it is for the Duet WiFi). If you have an Ormerod, Huxley Duo or RepRapPro Mendel printer with a 10K bed thermistor, you will need to add parameter T10000 to the M305 P0 command in config.g if you don't have that already.
-- On the Duet 0.6 and 0.85 the default hot end heater thermistor parameters are changed to match the Semtec thermistor used in the E3DV6 and other popular hot ends. If you have a printer built from a kit supplied by RepRapPro then you should use the following parameters in your M305 P1 command to restore the previous behaviour: B4138 C0
+- On the Duet 0.6 and 0.85 the default hot end heater thermistor parameters are changed to match the Semitec thermistor used in the E3DV6 and other popular hot ends. If you have a printer built from a kit supplied by RepRapPro then you should use the following parameters in your M305 P1 command to restore the previous behaviour: B4138 C0
 - The default bed temperature limit is 125C. Use M143 H0 S### if you need to increase it.
 - If your printer has multiple hot end heaters and you use the M143 command to change the temperature limit, you will need to use one M143 command with an appropriate H parameter for each heater.
 - If you limit the maximum heater PWM using the S parameter in a M301 command, you will now have to use M307 to do this instead. Similarly the M307 A parameter takes the place of the M301 T parameter (divide the T parameter by 255 and take the reciprocal to get the A parameter).
 - On the Duet 0.8.5 any parameters you saved to flash memory will be lost when upgrading to RC1 or later.
 - You will need to add M501 in your config.g file, at the end or just before the T0 command if you have one, if you want to load saved values automatically at startup.
 - If you use auto delta calibration and you have Z probe X and/or Y offsets defined, you should adjust your probe points to allow for the fact that the firmware will now place the probe over the points you specify instead of the nozzle
+- If your pause.g and resume.g contain any extruder movement commands to retract or prime filament, make sure these files have the M83 command at the start to select relative extruder coordinates
+- The recommended web interface is Duet Web Control 1.14. To use DWC 1.14 on the Duet WiFi, you must be using version 1.02 or later of DuetWiFiServer. Version 1.03-ch is recommended.
+
+Known issues for 1.17:
+
+- The M120 (Push) command doesn't work in macro or gcode files, because it causes execution of the file to be terminated
 
 Version 1.16
+============
 
 - Support the DueX2 and DueX5 expansion boards for the Duet WiFi
 - Add support for up to 3 additional axes U, V and W. The number of axes is reported to DWC and to PanelDue.
@@ -105,6 +123,7 @@ Upgrade notes:
 - You can use either DuetWebServer-1.03-ch or DuetWebServer-1.02 with this release. You may find that the -1.03-ch version is faster and provides a more reliable connection.
 
 Version 1.15
+============
 
 - Implemented automatic heating model calibration and PID tuning. See [https://duet3d.com/wiki/Tuning_the_heater_temperature_control] for details and instructions.
 - Implemented much better heater safety monitoring, based on a model (first-order-plus-time-delay) of each heater/sensor system, using default models if none have been configured
@@ -129,6 +148,7 @@ Upgrade notes:
 - The recommended web interface is DWC 1.12
 
 Version 1.14
+============
 
 - When multiple motors are due to step, generate all the step pulses simultaneously
 - Added support for multiple drivers for a single axis (M584)
@@ -145,6 +165,7 @@ Upgrade notes:
 - If you use the M584 command, it should come before any M350 and M906 commands in your config.g file.
 
 Version 1.13
+============
 
 * First firmware release for the new Duet WiFi
 * Added support for M581 and M582 commands, including 'only if printing a file' condition in M581 command
@@ -169,9 +190,10 @@ Version 1.13
 
 Upgrade notes:
 
-The recommended web interface is DWC 1.11 for ther Duet, and 1.11a-dc42 for the Duet WiFi.
+The recommended web interface is DWC 1.11 for the Duet, and 1.11a-dc42 for the Duet WiFi.
 
 Version 1.12
+============
 
 * PT100 and other RTD sensors are now supported
 * When a print is paused and then cancelled, the firmware now attempts to run file sys/cancel.g. It only turns the heaters off if that file is not found.
@@ -188,4 +210,4 @@ Upgrade notes:
 
 - If you are using Windows, please install the driver at [https://github.com/dc42/RepRapFirmware/tree/dev/Driver]. This driver does not install any new binaries, it simply tells Windows to use its usbser.sys driver to communicate with a Duet. If you are using Windows 10 then you don't need to install the driver if you don't want to, but then the Duet will show up as "USB Serial Device".
 - If you print with hot end temperatures above 260C then you will need to add a M143 command in config.g, for example M143 S280 will increase the temperature limit to 280C.
--The recommended web interface is DWC 1.11.
+- The recommended web interface is DWC 1.11.

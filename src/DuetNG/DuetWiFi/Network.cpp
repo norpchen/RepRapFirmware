@@ -4,12 +4,12 @@
 
  ****************************************************************************************************/
 
-#include "RepRapFirmware.h"
-#include "compiler.h"
-#include "Pins.h"
-#include "WifiFirmwareUploader.h"
+#include "Network.h"
+#include "Platform.h"
+#include "RepRap.h"
 #include "TransactionBuffer.h"
 #include "TransactionBufferReader.h"
+#include "WifiFirmwareUploader.h"
 
 // Define exactly one of the following as 1, thje other as zero
 // The PDC seems to be too slow to work reliably without getting transmit underruns, so we use the DMAC now.
@@ -743,7 +743,7 @@ const uint8_t *Network::GetIPAddress() const
 
 uint16_t Network::GetHttpPort() const
 {
-	return DEFAULT_HTTP_PORT;
+	return DefaultHttpPort;
 }
 
 void Network::SetHttpPort(uint16_t port)
